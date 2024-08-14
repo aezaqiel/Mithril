@@ -8,6 +8,13 @@ add_library(Mithril STATIC
     src/Mithril/Core/Application.cpp
     src/Mithril/Core/Logger.hpp
     src/Mithril/Core/Logger.cpp
+    src/Mithril/Core/KeyCodes.hpp
+    src/Mithril/Core/MouseCodes.hpp
+    src/Mithril/Core/Events/Event.hpp
+    src/Mithril/Core/Events/ApplicationEvent.hpp
+    src/Mithril/Core/Events/WindowEvent.hpp
+    src/Mithril/Core/Events/KeyEvent.hpp
+    src/Mithril/Core/Events/MouseEvent.hpp
 )
 
 target_include_directories(Mithril

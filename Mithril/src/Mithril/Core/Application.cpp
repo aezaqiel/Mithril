@@ -18,9 +18,22 @@ namespace Mithril {
         M_CORE_INFO("Core application created");
     }
 
+    // TODO: independent update and render loop
     void Application::Run()
     {
-        M_CORE_DEBUG("Running...");
+        while (m_Running) {
+            // TODO: Tick
+
+            if (!m_Suspended) {
+                // TODO: Update
+                // TODO: Render
+            }
+        }
+    }
+
+    void Application::OnEvent(Event& event)
+    {
+        EventDispatcher dispatcher(event);
     }
 
 }
