@@ -1,6 +1,6 @@
 #include "Application.hpp"
 
-#include <iostream>
+#include "Logger.hpp"
 
 namespace Mithril {
 
@@ -9,15 +9,18 @@ namespace Mithril {
     Application::Application()
     {
         if (s_Instance) {
-            std::cerr << "Can only have one application" << std::endl;
+            M_CORE_ERROR("Can only have one application");
         }
 
         s_Instance = this;
+
+        Logger::Init();
+        M_CORE_INFO("Core application created");
     }
 
     void Application::Run()
     {
-        std::cout << "Running..." << std::endl;
+        M_CORE_DEBUG("Running...");
     }
 
 }

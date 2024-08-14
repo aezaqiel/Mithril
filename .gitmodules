@@ -1,0 +1,3 @@
+[submodule "Mithril/vendor/spdlog"]
+	path = Mithril/vendor/spdlog
+	url = https://github.com/gabime/spdlog
