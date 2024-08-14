@@ -12,7 +12,7 @@ namespace Mithril {
     {
         None = 0,
         AppTick, AppUpdate, AppRender,
-        WindowResize, WindowMove, WindowClose, WindowMinimized, WindowFocus, WindowLostFocus,
+        WindowResize, WindowMove, WindowClose, WindowMinimize, WindowRestore, WindowFocus, WindowLostFocus,
         KeyPressed, KeyReleased, KeyTyped,
         MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
     };

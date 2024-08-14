@@ -1,4 +1,5 @@
 add_subdirectory(vendor/spdlog)
+add_subdirectory(vendor/glfw)
 
 add_library(Mithril STATIC
     src/Mithril/Mithril.hpp
@@ -15,6 +16,8 @@ add_library(Mithril STATIC
     src/Mithril/Core/Events/WindowEvent.hpp
     src/Mithril/Core/Events/KeyEvent.hpp
     src/Mithril/Core/Events/MouseEvent.hpp
+    src/Mithril/Core/Window.hpp
+    src/Mithril/Core/Window.cpp
 )
 
 target_include_directories(Mithril
@@ -25,6 +28,8 @@ PUBLIC
 target_link_libraries(Mithril
 PUBLIC
     spdlog
+PRIVATE
+    glfw
 )
 
 target_compile_options(Mithril PRIVATE

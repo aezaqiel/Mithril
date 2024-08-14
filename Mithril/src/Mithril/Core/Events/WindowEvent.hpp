@@ -63,12 +63,21 @@ namespace Mithril {
         EVENT_CATEGORY(EventCategoryWindow)
     };
 
-    class WindowMinimizedEvent : public Event
+    class WindowMinimizeEvent : public Event
     {
     public:
-        WindowMinimizedEvent() = default;
+        WindowMinimizeEvent() = default;
 
-        EVENT_CLASS(WindowMinimized)
+        EVENT_CLASS(WindowMinimize)
+        EVENT_CATEGORY(EventCategoryWindow)
+    };
+
+    class WindowRestoreEvent : public Event
+    {
+    public:
+        WindowRestoreEvent() = default;
+
+        EVENT_CLASS(WindowRestore)
         EVENT_CATEGORY(EventCategoryWindow)
     };
 

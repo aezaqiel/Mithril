@@ -1,3 +1,6 @@
 [submodule "Mithril/vendor/spdlog"]
 	path = Mithril/vendor/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "Mithril/vendor/glfw"]
+	path = Mithril/vendor/glfw
+	url = https://github.com/glfw/glfw

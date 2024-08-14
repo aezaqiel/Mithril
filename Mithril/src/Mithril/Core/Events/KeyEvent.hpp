@@ -21,7 +21,7 @@ namespace Mithril {
         KeyCode m_KeyCode;
     };
 
-    class KeyPressedEvent : KeyEvent
+    class KeyPressedEvent : public KeyEvent
     {
     public:
         KeyPressedEvent(KeyCode keyCode, bool repeat = false)
@@ -41,7 +41,7 @@ namespace Mithril {
         bool m_Repeat;
     };
 
-    class KeyReleasedEvent : KeyEvent
+    class KeyReleasedEvent : public KeyEvent
     {
     public:
         KeyReleasedEvent(KeyCode keyCode)
@@ -57,7 +57,7 @@ namespace Mithril {
         EVENT_CLASS(KeyReleased)
     };
 
-    class KeyTypedEvent : KeyEvent
+    class KeyTypedEvent : public KeyEvent
     {
     public:
         KeyTypedEvent (KeyCode keyCode)
