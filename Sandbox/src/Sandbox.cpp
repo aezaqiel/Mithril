@@ -4,6 +4,9 @@
 
 Sandbox::Sandbox()
 {
+    m_Layer = std::make_shared<SandboxLayer>();
+    PushLayer(m_Layer);
+
     MINFO("Client application created");
 }
 

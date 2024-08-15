@@ -2,6 +2,8 @@
 add_executable(Sandbox
     src/Sandbox.hpp
     src/Sandbox.cpp
+    src/SandboxLayer.hpp
+    src/SandboxLayer.cpp
 )
 
 target_include_directories(Sandbox

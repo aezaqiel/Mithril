@@ -21,6 +21,9 @@ add_library(Mithril STATIC
     src/Mithril/Core/Window.cpp
     src/Mithril/Core/Input.hpp
     src/Mithril/Core/Input.cpp
+    src/Mithril/Core/Layer.hpp
+    src/Mithril/Core/LayerStack.hpp
+    src/Mithril/Core/LayerStack.cpp
 )
 
 target_include_directories(Mithril
