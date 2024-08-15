@@ -17,7 +17,9 @@ namespace Mithril {
 
         void OnEvent(Event& event);
 
-        static Application& Get() { return *s_Instance; }
+        const std::shared_ptr<Window>& GetWindow() const { return m_Window; }
+
+        static Application& Instance() { return *s_Instance; }
 
     private:
         bool m_Running { true };

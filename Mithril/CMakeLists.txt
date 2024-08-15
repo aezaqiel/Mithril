@@ -1,5 +1,6 @@
 add_subdirectory(vendor/spdlog)
 add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/glm)
 
 add_library(Mithril STATIC
     src/Mithril/Mithril.hpp
@@ -18,6 +19,8 @@ add_library(Mithril STATIC
     src/Mithril/Core/Events/MouseEvent.hpp
     src/Mithril/Core/Window.hpp
     src/Mithril/Core/Window.cpp
+    src/Mithril/Core/Input.hpp
+    src/Mithril/Core/Input.cpp
 )
 
 target_include_directories(Mithril
@@ -28,6 +31,7 @@ PUBLIC
 target_link_libraries(Mithril
 PUBLIC
     spdlog
+    glm
 PRIVATE
     glfw
 )

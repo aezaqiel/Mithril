@@ -4,3 +4,6 @@
 [submodule "Mithril/vendor/glfw"]
 	path = Mithril/vendor/glfw
 	url = https://github.com/glfw/glfw
+[submodule "Mithril/vendor/glm"]
+	path = Mithril/vendor/glm
+	url = https://github.com/g-truc/glm

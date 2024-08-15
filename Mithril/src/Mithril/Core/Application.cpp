@@ -1,8 +1,9 @@
 #include "Application.hpp"
 
 #include "Logger.hpp"
-
 #include "Events/WindowEvent.hpp"
+#include "Input.hpp"
+#include "Mithril/Core/KeyCodes.hpp"
 
 namespace Mithril {
 
@@ -33,6 +34,10 @@ namespace Mithril {
             if (!m_Suspended) {
                 // TODO: layer stack update
                 // TODO: renderer draw
+
+                if (Input::KeyPressed(Key::Space)) {
+                    M_CORE_TRACE("Polled for <SPACE>");
+                }
             }
         }
     }
