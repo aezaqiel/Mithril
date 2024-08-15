@@ -2,6 +2,9 @@ add_subdirectory(vendor/spdlog)
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/glm)
 
+set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
+add_subdirectory(vendor/volk)
+
 add_library(Mithril STATIC
     src/Mithril/Mithril.hpp
     src/Mithril/EntryPoint.hpp
@@ -24,6 +27,9 @@ add_library(Mithril STATIC
     src/Mithril/Core/Layer.hpp
     src/Mithril/Core/LayerStack.hpp
     src/Mithril/Core/LayerStack.cpp
+
+    src/Mithril/Renderer/Renderer.hpp
+    src/Mithril/Renderer/Renderer.cpp
 )
 
 target_include_directories(Mithril
@@ -35,6 +41,7 @@ target_link_libraries(Mithril
 PUBLIC
     spdlog
     glm
+    volk
 PRIVATE
     glfw
 )

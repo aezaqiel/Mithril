@@ -19,10 +19,10 @@ namespace Mithril {
 
         Logger::Init();
 
-        m_LayerStack = std::make_unique<LayerStack>();
-
         m_Window = std::make_shared<Window>();
         m_Window->SetEventCallbackFn([this](auto&&... args) -> decltype(auto) { return this->OnEvent(std::forward<decltype(args)>(args)...); });
+
+        m_Renderer = std::make_shared<Renderer>();
 
         M_CORE_INFO("Core application created");
     }
@@ -35,11 +35,11 @@ namespace Mithril {
             m_Window->Update();
 
             if (!m_Suspended) {
-                for (const auto& layer : *m_LayerStack) {
+                for (const auto& layer : m_LayerStack) {
                     layer->OnUpdate(0.0f);
                 }
 
-                // TODO: renderer draw
+                m_Renderer->Draw();
 
                 if (Input::KeyPressed(Key::Space)) {
                     M_CORE_TRACE("Polled for <SPACE>");
@@ -67,7 +67,7 @@ namespace Mithril {
 
             m_Suspended = false;
 
-            // TODO: renderer resize
+            m_Renderer->Resize(e.Width(), e.Height());
 
             return false;
         });
@@ -84,7 +84,7 @@ namespace Mithril {
             return true;
         });
 
-        for (auto it = m_LayerStack->rbegin(); it != m_LayerStack->rend(); ++it) {
+        for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
             if (event.Handled) break;
             (*it)->OnEvent(event);
         }
@@ -92,25 +92,25 @@ namespace Mithril {
 
     void Application::PushLayer(const std::shared_ptr<Layer>& layer)
     {
-        m_LayerStack->PushLayer(layer);
+        m_LayerStack.PushLayer(layer);
         layer->OnAttach();
     }
 
     void Application::PushOverlay(const std::shared_ptr<Layer>& overlay)
     {
-        m_LayerStack->PushOverlay(overlay);
+        m_LayerStack.PushOverlay(overlay);
         overlay->OnAttach();
     }
 
     void Application::PopLayer(const std::shared_ptr<Layer>& layer)
     {
-        m_LayerStack->PopLayer(layer);
+        m_LayerStack.PopLayer(layer);
         layer->OnDetach();
     }
 
     void Application::PopOverlay(const std::shared_ptr<Layer>& overlay)
     {
-        m_LayerStack->PopLayer(overlay);
+        m_LayerStack.PopLayer(overlay);
         overlay->OnDetach();
     }
 

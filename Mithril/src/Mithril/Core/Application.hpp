@@ -5,6 +5,7 @@
 #include "Events/Event.hpp"
 #include "Window.hpp"
 #include "LayerStack.hpp"
+#include "Mithril/Renderer/Renderer.hpp"
 
 namespace Mithril {
 
@@ -31,8 +32,10 @@ namespace Mithril {
         bool m_Running { true };
         bool m_Suspended { false };
 
-        std::unique_ptr<LayerStack> m_LayerStack;
+        LayerStack m_LayerStack;
+
         std::shared_ptr<Window> m_Window;
+        std::shared_ptr<Renderer> m_Renderer;
 
     private:
         static Application* s_Instance;
