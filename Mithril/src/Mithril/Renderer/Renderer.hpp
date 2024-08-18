@@ -18,6 +18,8 @@ namespace Mithril {
 
     private:
         void CreateInstance();
+        void PickPhysicalDevice();
+        bool DeviceSuitable(VkPhysicalDevice device);
 
     private:
         VkAllocationCallbacks* m_Allocator { nullptr };
@@ -27,6 +29,7 @@ namespace Mithril {
 
         VkInstance m_Instance;
         VkDebugUtilsMessengerEXT m_DebugMessenger;
+        VkPhysicalDevice m_PhysicalDevice;
     };
 
 }

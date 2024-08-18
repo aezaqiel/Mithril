@@ -61,6 +61,7 @@ namespace Mithril {
         }
         
         CreateInstance();
+        PickPhysicalDevice();
     }
 
     Renderer::~Renderer()
@@ -138,6 +139,58 @@ namespace Mithril {
             M_CORE_ERROR("Failed to create debug messenger");
         }
 #endif
+    }
+
+    void Renderer::PickPhysicalDevice()
+    {
+        m_PhysicalDevice = VK_NULL_HANDLE;
+
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(m_Instance, &deviceCount, nullptr);
+
+        if (deviceCount == 0) {
+            M_CORE_ERROR("Failed to find GPUs with vulkan support");
+        }
+
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(m_Instance, &deviceCount, devices.data());
+
+        for (const auto& device : devices) {
+            if (DeviceSuitable(device)) {
+                m_PhysicalDevice = device;
+                break;
+            }
+        }
+
+        if (m_PhysicalDevice == VK_NULL_HANDLE) {
+            M_CORE_ERROR("No physical device supports all required features & properties");
+        } else {
+            VkPhysicalDeviceProperties properties;
+            vkGetPhysicalDeviceProperties(m_PhysicalDevice, &properties);
+
+            M_CORE_DEBUG("Using physical device {}", properties.deviceName);
+        }
+    }
+
+    bool Renderer::DeviceSuitable(VkPhysicalDevice device)
+    {
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(device, &properties);
+
+        M_CORE_DEBUG("Checking physical device {}", properties.deviceName);
+
+        if (properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            return false;
+        }
+
+        VkPhysicalDeviceFeatures features;
+        vkGetPhysicalDeviceFeatures(device, &features);
+
+        if (!features.geometryShader) {
+            return false;
+        }
+
+        return true;
     }
 
 }
