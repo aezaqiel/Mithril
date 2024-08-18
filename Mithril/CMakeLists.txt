@@ -5,32 +5,9 @@ add_subdirectory(vendor/glm)
 set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_WIN32_KHR)
 add_subdirectory(vendor/volk)
 
-add_library(Mithril STATIC
-    src/Mithril/Mithril.hpp
-    src/Mithril/EntryPoint.hpp
+file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/Mithril/src/*.cpp)
 
-    src/Mithril/Core/Application.hpp
-    src/Mithril/Core/Application.cpp
-    src/Mithril/Core/Logger.hpp
-    src/Mithril/Core/Logger.cpp
-    src/Mithril/Core/KeyCodes.hpp
-    src/Mithril/Core/MouseCodes.hpp
-    src/Mithril/Core/Events/Event.hpp
-    src/Mithril/Core/Events/ApplicationEvent.hpp
-    src/Mithril/Core/Events/WindowEvent.hpp
-    src/Mithril/Core/Events/KeyEvent.hpp
-    src/Mithril/Core/Events/MouseEvent.hpp
-    src/Mithril/Core/Window.hpp
-    src/Mithril/Core/Window.cpp
-    src/Mithril/Core/Input.hpp
-    src/Mithril/Core/Input.cpp
-    src/Mithril/Core/Layer.hpp
-    src/Mithril/Core/LayerStack.hpp
-    src/Mithril/Core/LayerStack.cpp
-
-    src/Mithril/Renderer/Renderer.hpp
-    src/Mithril/Renderer/Renderer.cpp
-)
+add_library(Mithril STATIC ${SRC_FILES})
 
 target_include_directories(Mithril
 PUBLIC

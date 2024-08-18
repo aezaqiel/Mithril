@@ -1,10 +1,6 @@
+file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/Sandbox/src/*.cpp)
 
-add_executable(Sandbox
-    src/Sandbox.hpp
-    src/Sandbox.cpp
-    src/SandboxLayer.hpp
-    src/SandboxLayer.cpp
-)
+add_executable(Sandbox ${SRC_FILES})
 
 target_include_directories(Sandbox
 PRIVATE
