@@ -1,9 +1,9 @@
 #pragma once
+#include "Mithril/Defines.hpp"
 
-#include <vector>
-#include <optional>
-
-#include <volk.h>
+#include "Vulkan/VulkanContext.hpp"
+#include "Vulkan/VulkanSurface.hpp"
+#include "Vulkan/VulkanDevice.hpp"
 
 namespace Mithril {
 
@@ -11,42 +11,16 @@ namespace Mithril {
     {
     public:
         Renderer();
-        ~Renderer();
+        ~Renderer() = default;
 
         void Draw();
 
-        void Resize(uint32_t width, uint32_t height);
-    
-    private:
-        struct QueueFamilyIndices
-        {
-            std::optional<uint32_t> GraphicsFamily;
-            std::optional<uint32_t> PresentFamily;
-        };
-
+        void Resize(u32 width, u32 height);
 
     private:
-        void CreateInstance();
-        void CreateSurface();
-        void PickPhysicalDevice();
-        bool DeviceSuitable(VkPhysicalDevice device);
-        QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
-        void CreateLogicalDevice();
-
-    private:
-        VkAllocationCallbacks* m_Allocator { nullptr };
-
-        std::vector<const char*> m_Layers;
-        std::vector<const char*> m_Extensions;
-
-        VkInstance m_Instance;
-        VkDebugUtilsMessengerEXT m_DebugMessenger;
-        VkSurfaceKHR m_Surface;
-        VkPhysicalDevice m_PhysicalDevice;
-        QueueFamilyIndices m_Indices;
-        VkQueue m_GraphicsQueue;
-        VkQueue m_PresentQueue;
-        VkDevice m_Device;
+        Ref<VulkanContext> m_Context;
+        Ref<VulkanSurface> m_Surface;
+        Ref<VulkanDevice> m_Device;
     };
 
 }
