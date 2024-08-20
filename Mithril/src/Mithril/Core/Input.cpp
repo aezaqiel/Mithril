@@ -10,31 +10,31 @@ namespace Mithril {
     bool Input::KeyPressed(KeyCode keyCode)
     {
         GLFWwindow* window = static_cast<GLFWwindow*>(Application::Instance().GetWindow()->Native());
-        int state = glfwGetKey(window, static_cast<int>(keyCode));
+        i32 state = glfwGetKey(window, static_cast<i32>(keyCode));
         return state == GLFW_PRESS;
     }
 
     bool Input::MouseButtonPressed(MouseCode mouseCode)
     {
         GLFWwindow* window = static_cast<GLFWwindow*>(Application::Instance().GetWindow()->Native());
-        int state = glfwGetMouseButton(window, static_cast<int>(mouseCode));
+        i32 state = glfwGetMouseButton(window, static_cast<i32>(mouseCode));
         return state == GLFW_PRESS;
     }
 
     glm::vec2 Input::MousePos()
     {
         GLFWwindow* window = static_cast<GLFWwindow*>(Application::Instance().GetWindow()->Native());
-        double x, y;
+        f64 x, y;
         glfwGetCursorPos(window, &x, &y);
-        return glm::vec2(static_cast<float>(x), static_cast<float>(y));
+        return glm::vec2(static_cast<f32>(x), static_cast<f32>(y));
     }
 
-    float Input::MouseX()
+    f32 Input::MouseX()
     {
         return MousePos().x;
     }
 
-    float Input::MouseY()
+    f32 Input::MouseY()
     {
         return MousePos().y;
     }

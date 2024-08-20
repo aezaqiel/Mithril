@@ -1,7 +1,7 @@
 #pragma once
+#include "Mithril/Defines.hpp"
 
 #include <vector>
-#include <memory>
 
 #include "Layer.hpp"
 
@@ -13,10 +13,10 @@ namespace Mithril {
         LayerStack() = default;
         ~LayerStack();
 
-        void PushLayer(const std::shared_ptr<Layer>& layer);
-        void PushOverlay(const std::shared_ptr<Layer>& overlay);
-        void PopLayer(const std::shared_ptr<Layer>& layer);
-        void PopOverlay(const std::shared_ptr<Layer>& overlay);
+        void PushLayer(const Ref<Layer>& layer);
+        void PushOverlay(const Ref<Layer>& overlay);
+        void PopLayer(const Ref<Layer>& layer);
+        void PopOverlay(const Ref<Layer>& overlay);
 
         auto begin() { return m_Stack.begin(); }
         auto end() { return m_Stack.end(); }
@@ -29,8 +29,8 @@ namespace Mithril {
         auto rend() const { return m_Stack.rend(); }
 
     private:
-        std::vector<std::shared_ptr<Layer>> m_Stack;
-        uint32_t m_Index { 0 };
+        std::vector<Ref<Layer>> m_Stack;
+        u32 m_Index { 0 };
     };
 
 }

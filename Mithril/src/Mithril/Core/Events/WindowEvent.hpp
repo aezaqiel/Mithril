@@ -9,11 +9,11 @@ namespace Mithril {
     class WindowResizeEvent : public Event
     {
     public:
-        WindowResizeEvent(uint32_t width, uint32_t height)
+        WindowResizeEvent(u32 width, u32 height)
             : m_Width(width), m_Height(height) {}
         
-        uint32_t Width() const { return m_Width; }
-        uint32_t Height() const { return m_Height; }
+        u32 Width() const { return m_Width; }
+        u32 Height() const { return m_Height; }
 
         virtual std::string ToString() const override
         {
@@ -26,18 +26,18 @@ namespace Mithril {
         EVENT_CATEGORY(EventCategoryWindow)
 
     private:
-        uint32_t m_Width;
-        uint32_t m_Height;
+        u32 m_Width;
+        u32 m_Height;
     };
 
     class WindowMoveEvent : public Event
     {
     public:
-        WindowMoveEvent(uint32_t x, uint32_t y)
+        WindowMoveEvent(u32 x, u32 y)
             : m_X(x), m_Y(y) {}
         
-        uint32_t X() const { return m_X; }
-        uint32_t Y() const { return m_Y; }
+        u32 X() const { return m_X; }
+        u32 Y() const { return m_Y; }
 
         virtual std::string ToString() const override
         {
@@ -50,8 +50,8 @@ namespace Mithril {
         EVENT_CATEGORY(EventCategoryWindow)
 
     private:
-        uint32_t m_X;
-        uint32_t m_Y;
+        u32 m_X;
+        u32 m_Y;
     };
 
     class WindowCloseEvent : public Event

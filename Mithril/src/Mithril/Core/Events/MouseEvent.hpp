@@ -56,7 +56,7 @@ namespace Mithril {
     class MouseMovedEvent : public Event
     {
     public:
-        MouseMovedEvent(float x, float y)
+        MouseMovedEvent(f32 x, f32 y)
             : m_X(x), m_Y(y) {}
         
         float X() const { return m_X; }
@@ -73,14 +73,14 @@ namespace Mithril {
         EVENT_CATEGORY(EventCategoryInput | EventCategoryMouse)
 
     private:
-        float m_X;
-        float m_Y;
+        f32 m_X;
+        f32 m_Y;
     };
 
     class MouseScrolledEvent : public Event
     {
     public:
-        MouseScrolledEvent(float x, float y)
+        MouseScrolledEvent(f32 x, f32 y)
             : m_X(x), m_Y(y) {}
         
         float X() const { return m_X; }
@@ -97,8 +97,8 @@ namespace Mithril {
         EVENT_CATEGORY(EventCategoryInput | EventCategoryMouse)
 
     private:
-        float m_X;
-        float m_Y;
+        f32 m_X;
+        f32 m_Y;
     };
 
 }

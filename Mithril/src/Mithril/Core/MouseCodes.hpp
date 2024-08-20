@@ -1,9 +1,8 @@
 #pragma once
-
-#include <cstdint>
+#include "Mithril/Defines.hpp"
 
 namespace Mithril {
-	using MouseCode = uint16_t;
+	using MouseCode = u16;
 
 	namespace Mouse {
 		enum : MouseCode

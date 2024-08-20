@@ -9,18 +9,18 @@ namespace Mithril {
         }
     }
 
-    void LayerStack::PushLayer(const std::shared_ptr<Layer>& layer)
+    void LayerStack::PushLayer(const Ref<Layer>& layer)
     {
         m_Stack.emplace(m_Stack.begin() + m_Index, std::move(layer));
         m_Index++;
     }
 
-    void LayerStack::PushOverlay(const std::shared_ptr<Layer>& overlay)
+    void LayerStack::PushOverlay(const Ref<Layer>& overlay)
     {
         m_Stack.emplace_back(std::move(overlay));
     }
 
-    void LayerStack::PopLayer(const std::shared_ptr<Layer>& layer)
+    void LayerStack::PopLayer(const Ref<Layer>& layer)
     {
         auto it = std::find(m_Stack.begin(), m_Stack.begin() + m_Index, layer);
         if (it != m_Stack.end()) {
@@ -29,7 +29,7 @@ namespace Mithril {
         }
     }
 
-    void LayerStack::PopOverlay(const std::shared_ptr<Layer>& overlay)
+    void LayerStack::PopOverlay(const Ref<Layer>& overlay)
     {
         auto it = std::find(m_Stack.begin() + m_Index, m_Stack.end(), overlay);
         if (it != m_Stack.end()) {

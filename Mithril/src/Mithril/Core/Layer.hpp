@@ -1,4 +1,5 @@
 #pragma once
+#include "Mithril/Defines.hpp"
 
 #include <string>
 
@@ -16,7 +17,7 @@ namespace Mithril {
 
         virtual void OnAttach() {}
         virtual void OnDetach() {}
-        virtual void OnUpdate(float) {}
+        virtual void OnUpdate(f32) {}
         virtual void OnEvent(Event&) {}
 
         const std::string& Name() const { return m_Name; }

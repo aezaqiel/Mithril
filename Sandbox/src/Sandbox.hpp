@@ -10,5 +10,5 @@ public:
     Sandbox();
     ~Sandbox();
 private:
-    std::shared_ptr<SandboxLayer> m_Layer;
+    Mithril::Ref<SandboxLayer> m_Layer;
 };

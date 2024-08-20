@@ -1,4 +1,5 @@
 #pragma once
+#include "Mithril/Defines.hpp"
 
 #include <string>
 #include <functional>
@@ -11,11 +12,11 @@ namespace Mithril {
 
     struct WindowProps
     {
-        uint32_t Width;
-        uint32_t Height;
+        u32 Width;
+        u32 Height;
         std::string Title;
 
-        WindowProps(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "Window")
+        WindowProps(u32 width = 1280, u32 height = 720, const std::string& title = "Window")
             : Width(width), Height(height), Title(title) {}
     };
 
@@ -31,8 +32,8 @@ namespace Mithril {
 
         void SetEventCallbackFn(EventCallbackFn callback) { m_Data.EventCallback = callback; }
 
-        uint32_t Width() const { return m_Data.Width; }
-        uint32_t Height() const { return m_Data.Height; }
+        u32 Width() const { return m_Data.Width; }
+        u32 Height() const { return m_Data.Height; }
 
         void* Native() const { return m_Window; }
 
@@ -41,8 +42,8 @@ namespace Mithril {
 
         struct WindowData
         {
-            uint32_t Width;
-            uint32_t Height;
+            u32 Width;
+            u32 Height;
             std::string Title;
 
             EventCallbackFn EventCallback;
@@ -51,7 +52,7 @@ namespace Mithril {
         WindowData m_Data;
     
     private:
-        static uint32_t s_WindowCount;
+        static u32 s_WindowCount;
     };
 
 }

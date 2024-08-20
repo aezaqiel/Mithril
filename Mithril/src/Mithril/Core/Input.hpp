@@ -1,4 +1,5 @@
 #pragma once
+#include "Mithril/Defines.hpp"
 
 #include <glm/glm.hpp>
 
@@ -13,8 +14,8 @@ namespace Mithril {
         static bool KeyPressed(KeyCode keyCode);
         static bool MouseButtonPressed(MouseCode mouseCode);
         static glm::vec2 MousePos();
-        static float MouseX();
-        static float MouseY();
+        static f32 MouseX();
+        static f32 MouseY();
     private:
     };
 

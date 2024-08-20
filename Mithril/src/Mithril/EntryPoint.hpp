@@ -4,7 +4,7 @@
 
 extern Mithril::Application* Mithril::CreateApplication();
 
-int main()
+int main(void)
 {
     Mithril::Application* app = Mithril::CreateApplication();
     app->Run();

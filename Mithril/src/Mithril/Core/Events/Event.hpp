@@ -1,4 +1,5 @@
 #pragma once
+#include "Mithril/Defines.hpp"
 
 #include <string>
 #include <concepts>
@@ -32,7 +33,7 @@ namespace Mithril {
                               virtual EventType GetEventType() const override { return GetStaticType(); } \
                               virtual const char* GetName() const override { return #type; }
                             
-    #define EVENT_CATEGORY(category) virtual int32_t GetCategoryFlags() const override { return category; }
+    #define EVENT_CATEGORY(category) virtual i32 GetCategoryFlags() const override { return category; }
 
     class Event
     {
@@ -43,7 +44,7 @@ namespace Mithril {
 
         virtual EventType GetEventType() const = 0;
         virtual const char* GetName() const = 0;
-        virtual int32_t GetCategoryFlags() const = 0;
+        virtual i32 GetCategoryFlags() const = 0;
         virtual std::string ToString() const { return GetName(); }
 
         bool InCategory(EventCategory category) const

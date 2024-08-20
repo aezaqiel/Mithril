@@ -19,10 +19,10 @@ namespace Mithril {
 
         Logger::Init();
 
-        m_Window = std::make_shared<Window>();
+        m_Window = CreateRef<Window>();
         m_Window->SetEventCallbackFn([this](auto&&... args) -> decltype(auto) { return this->OnEvent(std::forward<decltype(args)>(args)...); });
 
-        m_Renderer = std::make_shared<Renderer>();
+        m_Renderer = CreateRef<Renderer>();
 
         M_CORE_INFO("Core application created");
     }
@@ -40,10 +40,6 @@ namespace Mithril {
                 }
 
                 m_Renderer->Draw();
-
-                if (Input::KeyPressed(Key::Space)) {
-                    M_CORE_TRACE("Polled for <SPACE>");
-                }
             }
         }
     }

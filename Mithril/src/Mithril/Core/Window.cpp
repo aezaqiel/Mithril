@@ -10,7 +10,7 @@
 
 namespace Mithril {
 
-    uint32_t Window::s_WindowCount = 0;
+    u32 Window::s_WindowCount = 0;
 
     Window::Window(WindowProps props)
     {

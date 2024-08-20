@@ -1,6 +1,5 @@
 #pragma once
-
-#include <memory>
+#include "Mithril/Defines.hpp"
 
 #include "Events/Event.hpp"
 #include "Window.hpp"
@@ -19,12 +18,12 @@ namespace Mithril {
 
         void OnEvent(Event& event);
 
-        void PushLayer(const std::shared_ptr<Layer>& layer);
-        void PushOverlay(const std::shared_ptr<Layer>& overlay);
-        void PopLayer(const std::shared_ptr<Layer>& layer);
-        void PopOverlay(const std::shared_ptr<Layer>& overlay);
+        void PushLayer(const Ref<Layer>& layer);
+        void PushOverlay(const Ref<Layer>& overlay);
+        void PopLayer(const Ref<Layer>& layer);
+        void PopOverlay(const Ref<Layer>& overlay);
 
-        const std::shared_ptr<Window>& GetWindow() const { return m_Window; }
+        const Ref<Window>& GetWindow() const { return m_Window; }
 
         static Application& Instance() { return *s_Instance; }
 
@@ -34,8 +33,8 @@ namespace Mithril {
 
         LayerStack m_LayerStack;
 
-        std::shared_ptr<Window> m_Window;
-        std::shared_ptr<Renderer> m_Renderer;
+        Ref<Window> m_Window;
+        Ref<Renderer> m_Renderer;
 
     private:
         static Application* s_Instance;
