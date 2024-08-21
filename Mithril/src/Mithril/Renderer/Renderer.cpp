@@ -16,6 +16,7 @@ namespace Mithril {
             ".\\Shaders\\Triangle.vert.spv",
             ".\\Shaders\\Triangle.frag.spv"
         );
+        m_Framebuffer = CreateRef<VulkanFramebuffer>(m_Device, m_Swapchain, m_RenderPass);
     }
 
     void Renderer::Draw()

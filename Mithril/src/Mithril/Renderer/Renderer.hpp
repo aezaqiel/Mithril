@@ -7,6 +7,7 @@
 #include "Vulkan/VulkanSwapchain.hpp"
 #include "Vulkan/VulkanRenderPass.hpp"
 #include "Vulkan/VulkanGraphicsPipeline.hpp"
+#include "Vulkan/VulkanFramebuffer.hpp"
 
 namespace Mithril {
 
@@ -27,6 +28,7 @@ namespace Mithril {
         Ref<VulkanSwapchain> m_Swapchain;
         Ref<VulkanRenderPass> m_RenderPass;
         Ref<VulkanGraphicsPipeline> m_GraphicsPipeline;
+        Ref<VulkanFramebuffer> m_Framebuffer;
     };
 
 }

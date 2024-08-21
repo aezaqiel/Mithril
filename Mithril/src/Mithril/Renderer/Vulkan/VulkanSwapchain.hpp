@@ -19,6 +19,8 @@ namespace Mithril {
         inline VkSwapchainKHR Swapchain() const { return m_Swapchain; }
         inline VkSurfaceFormatKHR SurfaceFormat() const { return m_SurfaceFormat; }
         inline VkExtent2D Extent() const { return m_Extent; }
+        inline u32 ImageCount() const { return m_Images.size(); }
+        inline VkImageView ImageView(u32 index) const { return m_ImageViews[index]; }
 
     private:
         struct SwapchainSupportDetails
