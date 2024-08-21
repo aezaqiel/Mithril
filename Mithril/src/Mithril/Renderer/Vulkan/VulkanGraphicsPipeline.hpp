@@ -24,6 +24,8 @@ namespace Mithril {
 
         ~VulkanGraphicsPipeline();
 
+        inline VkPipeline Pipeline() const { return m_Pipeline; }
+
     private:
         VkShaderModule CompileShaderFile(const std::string& filepath);
 

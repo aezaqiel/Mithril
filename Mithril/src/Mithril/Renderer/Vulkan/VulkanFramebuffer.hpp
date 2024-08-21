@@ -17,6 +17,8 @@ namespace Mithril {
         VulkanFramebuffer(const Ref<VulkanDevice>& device, const Ref<VulkanSwapchain>& swapchain, const Ref<VulkanRenderPass>& renderPass);
         ~VulkanFramebuffer();
 
+        inline VkFramebuffer Framebuffer(u32 index) const { return m_Framebuffers[index]; }
+
     private:
         Ref<VulkanDevice> m_Device;
         Ref<VulkanSwapchain> m_Swapchain;
