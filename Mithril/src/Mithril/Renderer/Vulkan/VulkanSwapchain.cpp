@@ -61,10 +61,16 @@ namespace Mithril {
         vkGetSwapchainImagesKHR(m_Device->Device(), m_Swapchain, &imageCount, nullptr);
         m_Images.resize(imageCount);
         vkGetSwapchainImagesKHR(m_Device->Device(), m_Swapchain, &imageCount, m_Images.data());
+
+        CreateImageViews();
     }
 
     VulkanSwapchain::~VulkanSwapchain()
     {
+        for (auto& imageView : m_ImageViews) {
+            vkDestroyImageView(m_Device->Device(), imageView, nullptr);
+        }
+
         vkDestroySwapchainKHR(m_Device->Device(), m_Swapchain, nullptr);
     }
 
@@ -131,6 +137,33 @@ namespace Mithril {
             VkExtent2D actualExtent = { width, height };
 
             return actualExtent;
+        }
+    }
+
+    void VulkanSwapchain::CreateImageViews()
+    {
+        m_ImageViews.resize(m_Images.size());
+        for (u32 i = 0; i < m_Images.size(); i++) {
+            VkImageViewCreateInfo createInfo;
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.pNext = nullptr;
+            createInfo.flags = 0;
+            createInfo.image = m_Images[i];
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = m_SurfaceFormat.format;
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(m_Device->Device(), &createInfo, nullptr, &m_ImageViews[i]) != VK_SUCCESS) {
+                M_CORE_ERROR("Failed to create image view, index {}", i);
+            }
         }
     }
 

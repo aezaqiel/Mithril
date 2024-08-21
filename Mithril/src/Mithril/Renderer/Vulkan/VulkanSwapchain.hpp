@@ -29,6 +29,7 @@ namespace Mithril {
         VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& availableModes);
         VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        void CreateImageViews();
 
     private:
         Ref<VulkanSurface> m_Surface;
@@ -40,6 +41,7 @@ namespace Mithril {
 
         VkSwapchainKHR m_Swapchain;
         std::vector<VkImage> m_Images;
+        std::vector<VkImageView> m_ImageViews;
     };
 
 }
