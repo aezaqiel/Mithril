@@ -16,6 +16,8 @@ namespace Mithril {
         VulkanSwapchain(const Ref<VulkanSurface>& surface, const Ref<VulkanDevice>& device);
         ~VulkanSwapchain();
 
+        void Recreate();
+
         inline VkSwapchainKHR Swapchain() const { return m_Swapchain; }
         inline VkSurfaceFormatKHR SurfaceFormat() const { return m_SurfaceFormat; }
         inline VkExtent2D Extent() const { return m_Extent; }

@@ -14,6 +14,7 @@ namespace Mithril {
         m_Device = CreateRef<VulkanDevice>(m_Context, m_Surface);
         m_Swapchain = CreateRef<VulkanSwapchain>(m_Surface, m_Device);
         m_RenderPass = CreateRef<VulkanRenderPass>(m_Device, m_Swapchain);
+        m_Framebuffer = CreateRef<VulkanFramebuffer>(m_Device, m_Swapchain, m_RenderPass);
         m_GraphicsPipeline = CreateRef<VulkanGraphicsPipeline>(
             m_Device,
             m_Swapchain,
@@ -21,9 +22,8 @@ namespace Mithril {
             ".\\Shaders\\Triangle.vert.spv",
             ".\\Shaders\\Triangle.frag.spv"
         );
-        m_Framebuffer = CreateRef<VulkanFramebuffer>(m_Device, m_Swapchain, m_RenderPass);
         m_CommandPool = CreateRef<VulkanCommandPool>(m_Device);
-        m_CommandPool->AllocateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
+        m_CommandPool->AllocateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, MAX_FRAMES_IN_FLIGHT);
 
         CreateSyncObjects();
     }
@@ -36,21 +36,21 @@ namespace Mithril {
 
     void Renderer::Draw()
     {
-        vkWaitForFences(m_Device->Device(), 1, &m_InFlightFence, VK_TRUE, std::numeric_limits<u64>::max());
-        vkResetFences(m_Device->Device(), 1, &m_InFlightFence);
+        vkWaitForFences(m_Device->Device(), 1, &m_InFlightFence[m_CurrentFrame], VK_TRUE, std::numeric_limits<u64>::max());
+        vkResetFences(m_Device->Device(), 1, &m_InFlightFence[m_CurrentFrame]);
 
         u32 imageIndex;
-        vkAcquireNextImageKHR(m_Device->Device(), m_Swapchain->Swapchain(), std::numeric_limits<u64>::max(), m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR(m_Device->Device(), m_Swapchain->Swapchain(), std::numeric_limits<u64>::max(), m_ImageAvailableSemaphore[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
-        vkResetCommandBuffer(m_CommandPool->CommandBuffer(0), 0);
+        vkResetCommandBuffer(m_CommandPool->CommandBuffer(m_CurrentFrame), 0);
 
-        Submit(m_CommandPool->CommandBuffer(0), imageIndex);
+        Submit(m_CommandPool->CommandBuffer(m_CurrentFrame), imageIndex);
 
-        VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-        VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+        VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore[m_CurrentFrame] };
+        VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore[m_CurrentFrame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
-        VkCommandBuffer commandBuffer = m_CommandPool->CommandBuffer(0);
+        VkCommandBuffer commandBuffer = m_CommandPool->CommandBuffer(m_CurrentFrame);
         VkSwapchainKHR swapchain = m_Swapchain->Swapchain();
 
         VkSubmitInfo submitInfo;
@@ -64,7 +64,7 @@ namespace Mithril {
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_Device->GraphicsQueue().Queue, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_Device->GraphicsQueue().Queue, 1, &submitInfo, m_InFlightFence[m_CurrentFrame]) != VK_SUCCESS) {
             M_CORE_ERROR("Failed to submit draw command buffer");
         }
 
@@ -79,12 +79,32 @@ namespace Mithril {
         presentInfo.pResults = nullptr;
 
         vkQueuePresentKHR(m_Device->PresentQueue().Queue, &presentInfo);
+
+        m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
     void Renderer::Resize(u32 width, u32 height)
     {
         (void)width;
         (void)height;
+
+        vkDeviceWaitIdle(m_Device->Device());
+
+        m_GraphicsPipeline.reset();
+        m_Framebuffer.reset();
+        m_RenderPass.reset();
+        m_Swapchain.reset();
+
+        m_Swapchain = CreateRef<VulkanSwapchain>(m_Surface, m_Device);
+        m_RenderPass = CreateRef<VulkanRenderPass>(m_Device, m_Swapchain);
+        m_Framebuffer = CreateRef<VulkanFramebuffer>(m_Device, m_Swapchain, m_RenderPass);
+        m_GraphicsPipeline = CreateRef<VulkanGraphicsPipeline>(
+            m_Device,
+            m_Swapchain,
+            m_RenderPass,
+            ".\\Shaders\\Triangle.vert.spv",
+            ".\\Shaders\\Triangle.frag.spv"
+        );
     }
 
     void Renderer::Submit(VkCommandBuffer commandBuffer, u32 imageIndex)
@@ -141,6 +161,10 @@ namespace Mithril {
 
     void Renderer::CreateSyncObjects()
     {
+        m_ImageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+        m_RenderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+        m_InFlightFence.resize(MAX_FRAMES_IN_FLIGHT);
+
         VkSemaphoreCreateInfo semaphoreInfo;
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         semaphoreInfo.pNext = nullptr;
@@ -151,24 +175,28 @@ namespace Mithril {
         fenceInfo.pNext = nullptr;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        if (vkCreateSemaphore(m_Device->Device(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS) {
-            M_CORE_ERROR("Failed to create image available semaphore");
-        }
+        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            if (vkCreateSemaphore(m_Device->Device(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]) != VK_SUCCESS) {
+                M_CORE_ERROR("Failed to create image available semaphore");
+            }
 
-        if (vkCreateSemaphore(m_Device->Device(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS) {
-            M_CORE_ERROR("Failed to create image available semaphore");
-        }
+            if (vkCreateSemaphore(m_Device->Device(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore[i]) != VK_SUCCESS) {
+                M_CORE_ERROR("Failed to create image available semaphore");
+            }
 
-        if (vkCreateFence(m_Device->Device(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
-            M_CORE_ERROR("Failed to create fence");
+            if (vkCreateFence(m_Device->Device(), &fenceInfo, nullptr, &m_InFlightFence[i]) != VK_SUCCESS) {
+                M_CORE_ERROR("Failed to create fence");
+            }
         }
     }
 
     void Renderer::DestroySyncObjects()
     {
-        vkDestroyFence(m_Device->Device(), m_InFlightFence, nullptr);
-        vkDestroySemaphore(m_Device->Device(), m_RenderFinishedSemaphore, nullptr);
-        vkDestroySemaphore(m_Device->Device(), m_ImageAvailableSemaphore, nullptr);
+        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            vkDestroyFence(m_Device->Device(), m_InFlightFence[i], nullptr);
+            vkDestroySemaphore(m_Device->Device(), m_RenderFinishedSemaphore[i], nullptr);
+            vkDestroySemaphore(m_Device->Device(), m_ImageAvailableSemaphore[i], nullptr);
+        }
     }
 
 }

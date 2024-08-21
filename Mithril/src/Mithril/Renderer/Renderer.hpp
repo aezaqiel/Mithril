@@ -27,6 +27,8 @@ namespace Mithril {
         void DestroySyncObjects();
 
     private:
+        static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
+
         Ref<VulkanContext> m_Context;
         Ref<VulkanSurface> m_Surface;
         Ref<VulkanDevice> m_Device;
@@ -36,9 +38,11 @@ namespace Mithril {
         Ref<VulkanFramebuffer> m_Framebuffer;
         Ref<VulkanCommandPool> m_CommandPool;
 
-        VkSemaphore m_ImageAvailableSemaphore;
-        VkSemaphore m_RenderFinishedSemaphore;
-        VkFence m_InFlightFence;
+        std::vector<VkSemaphore> m_ImageAvailableSemaphore;
+        std::vector<VkSemaphore> m_RenderFinishedSemaphore;
+        std::vector<VkFence> m_InFlightFence;
+
+        u32 m_CurrentFrame { 0 };
     };
 
 }
