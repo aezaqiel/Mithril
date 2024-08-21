@@ -12,12 +12,20 @@ namespace Mithril {
     class VulkanDevice
     {
     public:
+        struct QueueFamily
+        {
+            VkQueue Queue;
+            u32 Index;
+        };
+
+    public:
         VulkanDevice(const Ref<VulkanContext>& context, const Ref<VulkanSurface>& surface);
         ~VulkanDevice();
 
+        inline VkPhysicalDevice PhysicalDevice() const { return m_PhysicalDevice; }
         inline VkDevice Device() const { return m_Device; }
-        inline VkQueue GraphicsQueue() const { return m_GraphicsQueue; }
-        inline VkQueue PresentQueue() const { return m_PresentQueue; }
+        inline QueueFamily GraphicsQueue() const { return m_GraphicsQueue; }
+        inline QueueFamily PresentQueue() const { return m_PresentQueue; }
     
     private:
         struct QueueFamilyIndices
@@ -41,8 +49,8 @@ namespace Mithril {
         std::vector<const char*> m_Extensions;
         VkPhysicalDevice m_PhysicalDevice;
         VkDevice m_Device;
-        VkQueue m_GraphicsQueue;
-        VkQueue m_PresentQueue;
+        QueueFamily m_GraphicsQueue;
+        QueueFamily m_PresentQueue;
     };
 
 }

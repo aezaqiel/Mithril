@@ -136,8 +136,11 @@ namespace Mithril {
 
         volkLoadDevice(m_Device);
 
-        vkGetDeviceQueue(m_Device, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
-        vkGetDeviceQueue(m_Device, indices.PresentFamily.value(), 0, &m_PresentQueue);
+        m_GraphicsQueue.Index = indices.GraphicsFamily.value();
+        vkGetDeviceQueue(m_Device, m_GraphicsQueue.Index, 0, &m_GraphicsQueue.Queue);
+
+        m_PresentQueue.Index = indices.PresentFamily.value();
+        vkGetDeviceQueue(m_Device, m_PresentQueue.Index, 0, &m_PresentQueue.Queue);
     }
 
     VulkanDevice::~VulkanDevice()

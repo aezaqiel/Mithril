@@ -4,6 +4,7 @@
 #include "Vulkan/VulkanContext.hpp"
 #include "Vulkan/VulkanSurface.hpp"
 #include "Vulkan/VulkanDevice.hpp"
+#include "Vulkan/VulkanSwapchain.hpp"
 
 namespace Mithril {
 
@@ -21,6 +22,7 @@ namespace Mithril {
         Ref<VulkanContext> m_Context;
         Ref<VulkanSurface> m_Surface;
         Ref<VulkanDevice> m_Device;
+        Ref<VulkanSwapchain> m_Swapchain;
     };
 
 }

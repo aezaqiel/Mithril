@@ -23,6 +23,11 @@ PRIVATE
     glfw
 )
 
+target_compile_definitions(Mithril
+PUBLIC
+    NOMINMAX
+)
+
 target_compile_options(Mithril PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
