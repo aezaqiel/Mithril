@@ -21,6 +21,8 @@ namespace Mithril {
         glfwSetErrorCallback([](int code, const char* desc) -> void
         {
             M_CORE_ERROR("GLFW Error ({}) {}", code, desc);
+            (void)code;
+            (void)desc;
         });
 
         if (s_WindowCount == 0) {

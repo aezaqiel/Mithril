@@ -7,7 +7,52 @@
 
 namespace Mithril {
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData);
+#ifndef NDEBUG
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
+    {
+        (void)userData;
+
+        std::stringstream ss;
+
+        switch (messageType) {
+            case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: {
+                ss << "[GENERAL] ";
+            } break;
+            case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: {
+                ss << "[VALIDATION] ";
+            } break;
+            case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: {
+                ss << "[PERFORMANCE] ";
+            } break;
+            case VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT: {
+                ss << "[DEVICE ADDRESS BINDING] ";
+            } break;
+            default:
+                ss << "[UNKNOWN] ";
+        }
+
+        switch (messageSeverity) {
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
+                ss << "[VERBOSE] ";
+            } break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {
+                ss << "[INFO] ";
+            } break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: {
+                ss << "[WARNING] ";
+            } break;
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
+                ss << "[ERROR] ";
+            } break;
+            default:
+                ss << "[UNKOWN] ";
+        }
+
+        M_CORE_DEBUG("{} {}", ss.str(), callbackData->pMessage);
+
+        return VK_FALSE;
+    }
+#endif
 
     VulkanContext::VulkanContext()
     {
@@ -127,51 +172,6 @@ namespace Mithril {
                 M_CORE_ERROR("Requested instance extension {} not available", requested);
             }
         }
-    }
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
-    {
-        (void)userData;
-
-        std::stringstream ss;
-
-        switch (messageType) {
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: {
-                ss << "[GENERAL] ";
-            } break;
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: {
-                ss << "[VALIDATION] ";
-            } break;
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: {
-                ss << "[PERFORMANCE] ";
-            } break;
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT: {
-                ss << "[DEVICE ADDRESS BINDING] ";
-            } break;
-            default:
-                ss << "[UNKNOWN] ";
-        }
-
-        switch (messageSeverity) {
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
-                ss << "[VERBOSE] ";
-            } break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {
-                ss << "[INFO] ";
-            } break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: {
-                ss << "[WARNING] ";
-            } break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
-                ss << "[ERROR] ";
-            } break;
-            default:
-                ss << "[UNKOWN] ";
-        }
-
-        M_CORE_DEBUG("{} {}", ss.str(), callbackData->pMessage);
-
-        return VK_FALSE;
     }
 
 }
