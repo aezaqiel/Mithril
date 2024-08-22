@@ -2,7 +2,6 @@
 
 #include "Logger.hpp"
 #include "Events/WindowEvent.hpp"
-#include "Input.hpp"
 #include "Mithril/Core/KeyCodes.hpp"
 
 namespace Mithril {
@@ -28,15 +27,18 @@ namespace Mithril {
     }
 
     // TODO: independent update and render loop
-    // TODO: delta time
     void Application::Run()
     {
         while (m_Running) {
+            std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
+            f32 dt = static_cast<f32>(std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - m_LastTime).count()) / 1000000000.0f;
+            m_LastTime = currentTime;
+
             m_Window->Update();
 
             if (!m_Suspended) {
                 for (const auto& layer : m_LayerStack) {
-                    layer->OnUpdate(0.0f);
+                    layer->OnUpdate(dt);
                 }
 
                 m_Renderer->Draw();

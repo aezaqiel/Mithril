@@ -1,6 +1,8 @@
 #pragma once
 #include "Mithril/Defines.hpp"
 
+#include <chrono>
+
 #include "Events/Event.hpp"
 #include "Window.hpp"
 #include "LayerStack.hpp"
@@ -30,6 +32,7 @@ namespace Mithril {
     private:
         bool m_Running { true };
         bool m_Suspended { false };
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_LastTime;
 
         LayerStack m_LayerStack;
 
