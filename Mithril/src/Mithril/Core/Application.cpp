@@ -41,7 +41,7 @@ namespace Mithril {
                     layer->OnUpdate(dt);
                 }
 
-                m_Renderer->Draw();
+                m_Renderer->Draw(dt);
             }
         }
     }

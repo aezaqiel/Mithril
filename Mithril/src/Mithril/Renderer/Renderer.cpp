@@ -75,8 +75,14 @@ namespace Mithril {
         SetExtent(Application::Instance().GetWindow()->Width(), Application::Instance().GetWindow()->Height());
         CreateRenderPass();
         CreateSwapchain();
+        CreateDescriptorSetLayout();
         CreateGraphicsPipeline();
         CreateCommandPool();
+        CreateVertexBuffer();
+        CreateIndexBuffer();
+        CreateUniformBuffers();
+        CreateDescriptorPool();
+        CreateDescriptorSets();
         AllocateCommandBuffer();
         CreateSyncObjects();
     }
@@ -93,6 +99,16 @@ namespace Mithril {
         vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
         vkDestroyPipeline(m_Device, m_GraphicsPipeline, nullptr);
         vkDestroyPipelineLayout(m_Device, m_GraphicsPipelineLayout, nullptr);
+        vkDestroyBuffer(m_Device, m_IndexBuffer, nullptr);
+        vkFreeMemory(m_Device, m_IndexBufferMemory, nullptr);
+        vkDestroyBuffer(m_Device, m_VertexBuffer, nullptr);
+        vkFreeMemory(m_Device, m_VertexBufferMemory, nullptr);
+        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            vkDestroyBuffer(m_Device, m_UniformBuffers[i], nullptr);
+            vkFreeMemory(m_Device, m_UniformBuffersMemory[i], nullptr);
+        }
+        vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
+        vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
         for (auto& framebuffer : m_Framebuffers) {
             vkDestroyFramebuffer(m_Device, framebuffer, nullptr);
         }
@@ -109,7 +125,7 @@ namespace Mithril {
         vkDestroyInstance(m_Instance, nullptr);
     }
 
-    void Renderer::Draw()
+    void Renderer::Draw(f32 dt)
     {
         vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
@@ -128,6 +144,8 @@ namespace Mithril {
 
         vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
         RecordCommandBuffer(m_CommandBuffers[m_CurrentFrame], imageIndex);
+
+        UpdateUniformBuffer(m_CurrentFrame, dt);
 
         VkSemaphore waitSemaphores[] = {m_ImageAvailableSemaphores[m_CurrentFrame]};
         VkSemaphore signalSemaphores[] = {m_RenderFinishedSemaphores[m_CurrentFrame]};
@@ -681,9 +699,30 @@ namespace Mithril {
         return module;
     }
 
+    void Renderer::CreateDescriptorSetLayout()
+    {
+        VkDescriptorSetLayoutBinding uboLayoutBinding;
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo;
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.pNext = nullptr;
+        layoutInfo.flags = 0;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &uboLayoutBinding;
+
+        if (vkCreateDescriptorSetLayout(m_Device, &layoutInfo, nullptr, &m_DescriptorSetLayout) != VK_SUCCESS) {
+            M_CORE_ERROR("Failed to create descriptor set layout");
+        }
+    }
+
     void Renderer::CreateGraphicsPipeline()
     {
-        VkShaderModule vertexModule = CompileShaderFile("Shaders/Triangle.vert.spv");
+        VkShaderModule vertexModule = CompileShaderFile("Shaders/UniformBufferTriangle.vert.spv");
         VkShaderModule fragmentModule = CompileShaderFile("Shaders/Triangle.frag.spv");
 
         VkPipelineShaderStageCreateInfo shaderStages[2];
@@ -715,14 +754,17 @@ namespace Mithril {
         dynamicStateInfo.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
         dynamicStateInfo.pDynamicStates = dynamicStates;
 
+        VkVertexInputBindingDescription bindingDescription = Vertex::GetBindingDescription();
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = Vertex::GetAttributeDescriptions();
+
         VkPipelineVertexInputStateCreateInfo vertexInputInfo;
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.pNext = nullptr;
         vertexInputInfo.flags = 0;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.pVertexBindingDescriptions = nullptr;
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
         inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -760,7 +802,7 @@ namespace Mithril {
         rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
         rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizationInfo.depthBiasEnable = VK_FALSE;
         rasterizationInfo.depthBiasConstantFactor = 0.0f;
         rasterizationInfo.depthBiasClamp = 0.0f;
@@ -805,8 +847,8 @@ namespace Mithril {
         layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         layoutInfo.pNext = nullptr;
         layoutInfo.flags = 0;
-        layoutInfo.setLayoutCount = 0;
-        layoutInfo.pSetLayouts = nullptr;
+        layoutInfo.setLayoutCount = 1;
+        layoutInfo.pSetLayouts = &m_DescriptorSetLayout;
         layoutInfo.pushConstantRangeCount = 0;
         layoutInfo.pPushConstantRanges = nullptr;
 
@@ -853,6 +895,135 @@ namespace Mithril {
 
         if (vkCreateCommandPool(m_Device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
             M_CORE_ERROR("Failed to create command pool");
+        }
+    }
+
+    u32 Renderer::FindMemoryType(u32 typeFilter, VkMemoryPropertyFlags properties)
+    {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &memProperties);
+
+        for (u32 i = 0; i < memProperties.memoryTypeCount; ++i) {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties ) {
+                return i;
+            }
+        }
+
+        M_CORE_ERROR("Failed to find suitable memory type");
+        return -1;
+    }
+
+    void Renderer::CreateVertexBuffer()
+    {
+        VkDeviceSize bufferSize = sizeof(m_Vertices[0]) * m_Vertices.size();
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, m_Vertices.data(), bufferSize);
+        vkUnmapMemory(m_Device, stagingBufferMemory);
+
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_VertexBuffer, m_VertexBufferMemory);
+
+        CopyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
+
+        vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+        vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
+    }
+
+    void Renderer::CreateIndexBuffer()
+    {
+        VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(m_Device, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, m_Indices.data(), bufferSize);
+        vkUnmapMemory(m_Device, stagingBufferMemory);
+
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_IndexBuffer, m_IndexBufferMemory);
+
+        CopyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
+
+        vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+        vkFreeMemory(m_Device, stagingBufferMemory, nullptr);
+    }
+
+    void Renderer::CreateUniformBuffers()
+    {
+        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+        m_UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        m_UniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        m_UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffers[i], m_UniformBuffersMemory[i]);
+            vkMapMemory(m_Device, m_UniformBuffersMemory[i], 0, bufferSize, 0, &m_UniformBuffersMapped[i]);
+        }
+    }
+
+    void Renderer::CreateDescriptorPool()
+    {
+        VkDescriptorPoolSize poolSize;
+        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize.descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+        VkDescriptorPoolCreateInfo createInfo;
+        createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        createInfo.pNext = nullptr;
+        createInfo.flags = 0;
+        createInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+        createInfo.poolSizeCount = 1;
+        createInfo.pPoolSizes = &poolSize;
+
+        if (vkCreateDescriptorPool(m_Device, &createInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
+            M_CORE_ERROR("Failed to create descriptor pool");
+        }
+    }
+
+    void Renderer::CreateDescriptorSets()
+    {
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_DescriptorSetLayout);
+        VkDescriptorSetAllocateInfo allocateInfo;
+        allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocateInfo.pNext = nullptr;
+        allocateInfo.descriptorPool = m_DescriptorPool;
+        allocateInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+        allocateInfo.pSetLayouts = layouts.data();
+
+        m_DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        if (vkAllocateDescriptorSets(m_Device, &allocateInfo, m_DescriptorSets.data()) != VK_SUCCESS) {
+            M_CORE_ERROR("Failed to allocate descriptor sets");
+        }
+
+        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            VkDescriptorBufferInfo bufferInfo;
+            bufferInfo.buffer = m_UniformBuffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
+
+            VkWriteDescriptorSet descriptorWrite;
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.pNext = nullptr;
+            descriptorWrite.dstSet = m_DescriptorSets[i];
+            descriptorWrite.dstBinding = 0;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.pImageInfo = nullptr;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+            descriptorWrite.pTexelBufferView = nullptr;
+
+            vkUpdateDescriptorSets(m_Device, 1, &descriptorWrite, 0, nullptr);
         }
     }
 
@@ -945,7 +1116,15 @@ namespace Mithril {
 
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        VkBuffer vertexBuffers[] = { m_VertexBuffer };
+        VkDeviceSize offsets[] = { 0 };
+
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, m_IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentFrame], 0, nullptr);
+
+        vkCmdDrawIndexed(commandBuffer, m_Indices.size(), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -972,6 +1151,96 @@ namespace Mithril {
         CreateRenderPass();
         CreateSwapchain();
         CreateGraphicsPipeline();
+    }
+
+    void Renderer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+    {
+        VkBufferCreateInfo bufferInfo;
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.pNext = nullptr;
+        bufferInfo.flags = 0;
+        bufferInfo.size = size;
+        bufferInfo.usage = usage;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        bufferInfo.queueFamilyIndexCount = 0;
+        bufferInfo.pQueueFamilyIndices = nullptr;
+
+        if (vkCreateBuffer(m_Device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+            M_CORE_ERROR("Failed to create buffer");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(m_Device, buffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocateInfo;
+        allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocateInfo.pNext = nullptr;
+        allocateInfo.allocationSize = memRequirements.size;
+        allocateInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+        if (vkAllocateMemory(m_Device, &allocateInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+            M_CORE_ERROR("Failed to allocate buffer memory");
+        }
+
+        vkBindBufferMemory(m_Device, buffer, bufferMemory, 0);
+    }
+
+    void Renderer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    {
+        VkCommandBufferAllocateInfo allocateInfo;
+        allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocateInfo.pNext = nullptr;
+        allocateInfo.commandPool = m_CommandPool;
+        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocateInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(m_Device, &allocateInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo beginInfo;
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.pNext = nullptr;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        beginInfo.pInheritanceInfo = nullptr;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+        VkBufferCopy copyRegion;
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = size;
+
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo;
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.pNext = nullptr;
+        submitInfo.waitSemaphoreCount = 0;
+        submitInfo.pWaitSemaphores = nullptr;
+        submitInfo.pWaitDstStageMask = nullptr;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.pSignalSemaphores = nullptr;
+
+        vkQueueSubmit(m_GraphicsQueue.Queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(m_GraphicsQueue.Queue);
+
+        vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &commandBuffer);
+    }
+
+    void Renderer::UpdateUniformBuffer(u32 currentImage, f32 dt)
+    {
+        UniformBufferObject ubo;
+        ubo.Model = glm::rotate(glm::mat4(1.0f), dt * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.Proj = glm::perspective(glm::radians(45.0f), static_cast<f32>(m_Extent.width) / static_cast<f32>(m_Extent.height), 0.1f, 10.0f);
+
+        ubo.Proj[1][1] *= -1;
+
+        memcpy(m_UniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
 
 }
